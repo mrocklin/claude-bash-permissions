@@ -1,0 +1,16 @@
+{
+  "name": "mrocklin-plugins",
+  "owner": {
+    "name": "Matt Rocklin",
+    "email": "mrocklin@gmail.com"
+  },
+  "description": "Claude Code plugins by Matt Rocklin",
+  "plugins": [
+    {
+      "name": "claude-permissions",
+      "source": "./",
+      "description": "Compositional bash command approval using regex patterns",
+      "version": "0.1.0"
+    }
+  ]
+}

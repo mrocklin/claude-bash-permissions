@@ -1,0 +1,17 @@
+{
+  "description": "Compositional bash command approval using regex patterns",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/approve_bash.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
