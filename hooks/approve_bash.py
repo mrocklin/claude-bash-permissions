@@ -42,8 +42,10 @@ def ask_with_hint(core_cmd: str, is_new: bool) -> None:
 
     # Add context prompting Claude to offer adding the pattern
     if is_new:
+        data_dir = get_data_dir()
         hook_output["additionalContext"] = (
             f"The command '{cmd_key}' is not in your safe patterns. "
+            f"Plugin data directory: {data_dir} "
             f"After this command runs, ask the user: \"Would you like me to add '{cmd_key}' "
             f"to your safe command patterns so it auto-approves next time?\""
         )
@@ -89,7 +91,7 @@ def load_never_commands() -> set:
     return set()
 
 
-def split_command_chain(cmd: str) -> List[str]:
+def split_command_chain(cmd: str):
     """Split command into segments on &&, ||, ;, |, &.
 
     Handles backslash continuations, quoted strings, and redirections.

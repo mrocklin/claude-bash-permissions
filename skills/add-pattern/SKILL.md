@@ -8,10 +8,7 @@ When the user wants to approve a new command pattern (e.g., "approve foo command
 
 ## Data Files
 
-Find the plugin data directory:
-```bash
-find ~/.claude/plugins/cache -name "patterns.py" -path "*claude-bash-permissions*" | head -1 | xargs dirname
-```
+The plugin data directory path is provided in the `additionalContext` from the hook (look for "Plugin data directory: /path/to/data").
 
 Files in that directory:
 - `patterns.py` - All safe command patterns (edit this)
@@ -26,10 +23,7 @@ Files in that directory:
 
 ## Adding a Pattern
 
-1. First, check what commands have been seen but not approved:
-   ```bash
-   cat $(find ~/.claude/plugins/cache -name ".seen" -path "*claude-bash-permissions*" | head -1)
-   ```
+1. First, check what commands have been seen but not approved by reading `.seen` in the data directory
 
 2. Ask clarifying questions if needed:
    - What command/tool? (e.g., `foo`, `docker`, `myctl`)
@@ -52,8 +46,8 @@ Files in that directory:
 
 If user says "no, don't auto-approve X" or "X should always ask":
 
-1. Add command to `{plugin}/data/.never` (one command per line)
-2. Remove from `data/.seen` if present
+1. Add command to `.never` in the data directory (one command per line)
+2. Remove from `.seen` if present
 3. Future uses of that command will go straight to permission prompt without hints
 
 ## Pattern file template
@@ -72,7 +66,7 @@ SAFE_COMMANDS = [
 
 User: "approve docker commands"
 
-Response: Add to {plugin}/data/patterns.py:
+Response: Add to `patterns.py` in the data directory:
 ```python
 SAFE_COMMANDS = [
     (r"^docker\b", "docker"),
@@ -83,4 +77,4 @@ SAFE_COMMANDS = [
 
 User: "no, git commit should always ask"
 
-Response: Add "git" to {plugin}/data/.never
+Response: Add "git" to `.never` in the data directory
