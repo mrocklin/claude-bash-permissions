@@ -10,7 +10,7 @@ import os
 import sys
 import re
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Any, Optional, List, Tuple
 
 # Add parent to path so we can import patterns
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -30,17 +30,27 @@ def approve(reason: str) -> None:
 
 
 def ask_with_hint(core_cmd: str, is_new: bool) -> None:
-    """Output 'ask' decision with hint about adding pattern."""
-    hint = f"Unknown command '{core_cmd.split()[0]}'"
-    if is_new:
-        hint += " - consider adding to safe patterns"
-    print(json.dumps({
+    """Output 'ask' decision with context to prompt Claude about adding pattern."""
+    cmd_key = core_cmd.split()[0] if core_cmd.split() else ""
+    hint = f"Unknown command '{cmd_key}'"
+
+    output: dict[str, Any] = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "ask",
             "permissionDecisionReason": hint
         }
-    }))
+    }
+
+    # Add context prompting Claude to offer adding the pattern
+    if is_new:
+        output["additionalContext"] = (
+            f"The command '{cmd_key}' is not in your safe patterns. "
+            f"After this command runs, ask the user: \"Would you like me to add '{cmd_key}' "
+            f"to your safe command patterns so it auto-approves next time?\""
+        )
+
+    print(json.dumps(output))
     sys.exit(0)
 
 
