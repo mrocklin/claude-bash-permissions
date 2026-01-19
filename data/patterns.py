@@ -49,7 +49,6 @@ SAFE_COMMANDS = [
      "git write"),
 
     # --- Python ---
-    (r"^python[23]?\b", "python"),
     (r"^pytest\b", "pytest"),
     (r"^ruff\b", "ruff"),
     (r"^pip\s+(search|show|list|freeze|check)\b", "pip read"),
