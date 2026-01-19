@@ -3,15 +3,10 @@
 Claude Code PreToolUse Hook: Compositional Bash Command Approval
 
 Approves bash commands by decomposing them into WRAPPERS + CORE COMMAND.
-Patterns are loaded from:
-  - Plugin defaults (patterns/base.py)
-  - User customizations (~/.claude/permissions/*.py)
-  - Project-specific (.claude/permissions/*.py)
-
-See patterns/base.py for the pattern format.
 """
 from __future__ import annotations
 import json
+import os
 import sys
 import re
 from pathlib import Path
@@ -55,13 +50,8 @@ def get_command_key(core_cmd: str) -> str:
 
 
 def get_data_dir() -> Path:
-    """Get plugin data directory. Uses CLAUDE_PLUGIN_ROOT if available, else plugin dir."""
-    import os
-    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
-    if plugin_root:
-        return Path(plugin_root) / "data"
-    # Fallback for testing: use plugin directory
-    return Path(__file__).parent.parent / "data"
+    """Get plugin data directory relative to this script."""
+    return Path(__file__).resolve().parent.parent / "data"
 
 
 def load_seen_commands() -> set:
@@ -151,7 +141,6 @@ def check_safe(cmd: str, safe_commands: list) -> Optional[str]:
 
 
 def main():
-    import os
     debug = os.environ.get("DEBUG")
 
     try:

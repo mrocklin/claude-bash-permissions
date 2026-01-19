@@ -26,34 +26,30 @@ Chained commands (`&&`, `|`, `;`) are split and each segment validated independe
 
 ```
 claude-bash-permissions/
-├── .claude-plugin/plugin.json   # Plugin metadata
+├── .claude-plugin/
+│   ├── plugin.json              # Plugin metadata
+│   └── marketplace.json         # Marketplace definition
 ├── hooks/
 │   ├── hooks.json               # Hook registration (PreToolUse on Bash)
 │   └── approve_bash.py          # Hook implementation
 ├── patterns/
 │   └── __init__.py              # Pattern loading
-├── skills/
-│   └── add-pattern/SKILL.md     # Skill for adding new patterns
 ├── data/
-│   ├── patterns.py              # User-editable patterns (WRAPPER_PATTERNS + SAFE_COMMANDS)
+│   ├── patterns.py              # All patterns (WRAPPER_PATTERNS + SAFE_COMMANDS)
 │   ├── .seen                    # Commands encountered (for suggestions)
 │   └── .never                   # Commands declined for auto-approval
+├── skills/
+│   └── add-pattern/SKILL.md     # Skill for adding new patterns
 ```
 
-### Pattern Loading Order
-
-`patterns/__init__.py` loads from:
-1. `{plugin}/data/*.py` - User patterns (editable)
-2. `.claude/permissions/*.py` - Project-specific patterns
-
-### Hook Logic (approve_bash.py)
+### Hook Logic
 
 1. Reject if command contains `$(...)` or backticks (command substitution)
 2. Split command on `&&`, `||`, `;`, `|`, `&` into segments
 3. For each segment:
    - Strip wrapper prefixes iteratively (timeout, env vars, .venv/bin/, etc.)
    - Check if remaining core matches a SAFE_COMMANDS pattern
-4. If ALL segments safe → approve with reason; else → reject (no output)
+4. If ALL segments safe → approve; else → ask (with hint for new commands)
 
 ## Pattern Format
 

@@ -1,9 +1,5 @@
 """
-Pattern loading.
-
-Loads patterns from:
-1. {plugin}/data/*.py (user patterns, editable)
-2. .claude/permissions/*.py (project-specific, uses CLAUDE_PROJECT_DIR)
+Pattern loading from {plugin}/data/*.py and {project}/.claude/permissions/*.py
 """
 import importlib.util
 import os
@@ -11,11 +7,8 @@ from pathlib import Path
 
 
 def get_data_dir() -> Path:
-    """Get plugin data directory."""
-    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
-    if plugin_root:
-        return Path(plugin_root) / "data"
-    return Path(__file__).parent.parent / "data"
+    """Get plugin data directory relative to this module."""
+    return Path(__file__).resolve().parent.parent / "data"
 
 
 def load_patterns_from_file(path: Path) -> tuple[list, list]:
