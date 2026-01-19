@@ -8,7 +8,12 @@ When the user wants to approve a new command pattern (e.g., "approve foo command
 
 ## Data Files
 
-All data stored in `{plugin}/data/` (where plugin is installed):
+Find the plugin data directory:
+```bash
+find ~/.claude/plugins/cache -name "patterns.py" -path "*claude-bash-permissions*" | head -1 | xargs dirname
+```
+
+Files in that directory:
 - `patterns.py` - All safe command patterns (edit this)
 - `.seen` - Commands we've encountered but not decided on
 - `.never` - Commands user has declined to auto-approve
@@ -21,23 +26,27 @@ All data stored in `{plugin}/data/` (where plugin is installed):
 
 ## Adding a Pattern
 
-1. Ask clarifying questions if needed:
+1. First, check what commands have been seen but not approved:
+   ```bash
+   cat $(find ~/.claude/plugins/cache -name ".seen" -path "*claude-bash-permissions*" | head -1)
+   ```
+
+2. Ask clarifying questions if needed:
    - What command/tool? (e.g., `foo`, `docker`, `myctl`)
    - Read-only or write operations? (affects pattern specificity)
    - Any subcommands to restrict? (e.g., `docker ps` vs all docker)
 
-2. Generate the pattern tuple:
+3. Generate the pattern tuple:
    ```python
    (r"^foo\b", "foo"),  # Simple: any foo command
    (r"^foo\s+(list|show|get)\b", "foo read"),  # Restricted to read ops
    ```
 
-3. Add to `{plugin}/data/patterns.py`:
-   - Append to SAFE_COMMANDS list
+4. Add to patterns.py (append to SAFE_COMMANDS list)
 
-4. Remove from `data/.seen` if present
+5. Remove from `.seen` if present
 
-5. Tell user to restart Claude Code for changes to take effect.
+6. Tell user to restart Claude Code for changes to take effect.
 
 ## Declining a Pattern
 
