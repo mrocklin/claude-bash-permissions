@@ -10,7 +10,7 @@ import os
 import sys
 import re
 from pathlib import Path
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional
 
 # Add parent to path so we can import patterns
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -34,21 +34,21 @@ def ask_with_hint(core_cmd: str, is_new: bool) -> None:
     cmd_key = core_cmd.split()[0] if core_cmd.split() else ""
     hint = f"Unknown command '{cmd_key}'"
 
-    output: dict[str, Any] = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "ask",
-            "permissionDecisionReason": hint
-        }
+    hook_output: dict[str, Any] = {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "ask",
+        "permissionDecisionReason": hint
     }
 
     # Add context prompting Claude to offer adding the pattern
     if is_new:
-        output["additionalContext"] = (
+        hook_output["additionalContext"] = (
             f"The command '{cmd_key}' is not in your safe patterns. "
             f"After this command runs, ask the user: \"Would you like me to add '{cmd_key}' "
             f"to your safe command patterns so it auto-approves next time?\""
         )
+
+    output = {"hookSpecificOutput": hook_output}
 
     print(json.dumps(output))
     sys.exit(0)
@@ -126,7 +126,7 @@ def split_command_chain(cmd: str) -> List[str]:
     return [restore(s).strip() for s in segments if s.strip()]
 
 
-def strip_wrappers(cmd: str, wrapper_patterns: list) -> Tuple[str, List[str]]:
+def strip_wrappers(cmd: str, wrapper_patterns: list):
     """Strip wrapper prefixes iteratively, return (core_cmd, wrapper_names)."""
     wrappers = []
     changed = True
