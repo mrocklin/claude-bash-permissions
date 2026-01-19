@@ -34,6 +34,61 @@ def approve(reason: str) -> None:
     sys.exit(0)
 
 
+def ask_with_hint(core_cmd: str, is_new: bool) -> None:
+    """Output 'ask' decision with hint about adding pattern."""
+    hint = f"Unknown command '{core_cmd.split()[0]}'"
+    if is_new:
+        hint += " - consider adding to safe patterns"
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": hint
+        }
+    }))
+    sys.exit(0)
+
+
+def get_command_key(core_cmd: str) -> str:
+    """Extract the base command for tracking (first word)."""
+    return core_cmd.split()[0] if core_cmd.split() else ""
+
+
+def get_data_dir() -> Path:
+    """Get plugin data directory. Uses CLAUDE_PLUGIN_ROOT if available, else plugin dir."""
+    import os
+    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if plugin_root:
+        return Path(plugin_root) / "data"
+    # Fallback for testing: use plugin directory
+    return Path(__file__).parent.parent / "data"
+
+
+def load_seen_commands() -> set:
+    """Load set of commands we've seen but not approved."""
+    seen_file = get_data_dir() / ".seen"
+    if seen_file.exists():
+        return set(seen_file.read_text().strip().split("\n"))
+    return set()
+
+
+def save_seen_command(cmd_key: str) -> None:
+    """Add command to seen list."""
+    seen_file = get_data_dir() / ".seen"
+    seen_file.parent.mkdir(parents=True, exist_ok=True)
+    seen = load_seen_commands()
+    seen.add(cmd_key)
+    seen_file.write_text("\n".join(sorted(seen)) + "\n")
+
+
+def load_never_commands() -> set:
+    """Load set of commands user has declined to auto-approve."""
+    never_file = get_data_dir() / ".never"
+    if never_file.exists():
+        return set(never_file.read_text().strip().split("\n"))
+    return set()
+
+
 def split_command_chain(cmd: str) -> List[str]:
     """Split command into segments on &&, ||, ;, |, &.
 
@@ -109,14 +164,16 @@ def main():
 
     cmd = data.get("tool_input", {}).get("command", "")
 
-    # Reject command substitution
+    # Reject command substitution - no hints, just reject
     if re.search(r"\$\(|`", cmd):
         if debug:
-            print(f"REJECTED: command substitution ($() or `) detected", file=sys.stderr)
+            print("REJECTED: command substitution ($() or `) detected", file=sys.stderr)
         sys.exit(0)
 
-    # Load patterns
+    # Load patterns and tracking lists
     wrapper_patterns, safe_commands = load_all_patterns()
+    seen_commands = load_seen_commands()
+    never_commands = load_never_commands()
 
     # Process all segments
     segments = split_command_chain(cmd)
@@ -127,12 +184,26 @@ def main():
         reason = check_safe(core_cmd, safe_commands)
 
         if not reason:
+            # Command not in safe patterns
+            cmd_key = get_command_key(core_cmd)
+
             if debug:
                 if wrappers:
                     print(f"REJECTED: '{segment}' -> core '{core_cmd}' (after stripping {wrappers}) - no matching pattern", file=sys.stderr)
                 else:
                     print(f"REJECTED: '{segment}' - no matching pattern", file=sys.stderr)
-            sys.exit(0)
+
+            # If in never list, silently pass to normal permission flow
+            if cmd_key in never_commands:
+                sys.exit(0)
+
+            # Check if this is a new command we haven't seen
+            is_new = cmd_key not in seen_commands
+            if is_new:
+                save_seen_command(cmd_key)
+
+            # Ask user with hint about adding pattern
+            ask_with_hint(core_cmd, is_new)
 
         if wrappers:
             reasons.append(f"{'+'.join(wrappers)} + {reason}")

@@ -1,4 +1,4 @@
-# Claude Permissions Plugin
+# Claude Bash Permissions Plugin
 
 A Claude Code plugin for compositional bash command approval using regex patterns.
 
@@ -25,26 +25,26 @@ Chained commands (`&&`, `|`, `;`) are split and each segment validated independe
 ## Architecture
 
 ```
-claude-permissions/
+claude-bash-permissions/
 ├── .claude-plugin/plugin.json   # Plugin metadata
 ├── hooks/
 │   ├── hooks.json               # Hook registration (PreToolUse on Bash)
 │   └── approve_bash.py          # Hook implementation
 ├── patterns/
-│   ├── __init__.py              # Pattern loading, merges all sources
-│   └── base.py                  # Default WRAPPER_PATTERNS + SAFE_COMMANDS
+│   └── __init__.py              # Pattern loading
 ├── skills/
 │   └── add-pattern/SKILL.md     # Skill for adding new patterns
-├── examples/
-│   └── custom_patterns.py       # Template for user customization
+├── data/
+│   ├── patterns.py              # User-editable patterns (WRAPPER_PATTERNS + SAFE_COMMANDS)
+│   ├── .seen                    # Commands encountered (for suggestions)
+│   └── .never                   # Commands declined for auto-approval
 ```
 
 ### Pattern Loading Order
 
-`patterns/__init__.py` merges patterns from:
-1. `patterns/base.py` - Plugin defaults
-2. `~/.claude/permissions/*.py` - User's global customizations
-3. `.claude/permissions/*.py` - Project-specific patterns
+`patterns/__init__.py` loads from:
+1. `{plugin}/data/*.py` - User patterns (editable)
+2. `.claude/permissions/*.py` - Project-specific patterns
 
 ### Hook Logic (approve_bash.py)
 

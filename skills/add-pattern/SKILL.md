@@ -1,12 +1,25 @@
 ---
-description: Add a new safe command pattern to claude-permissions
+description: Add or decline safe command patterns for claude-permissions
 ---
 
 # Add Pattern Skill
 
-When the user wants to approve a new command pattern (e.g., "approve foo commands", "add docker to safe commands", "allow myctl"), help them add it to their patterns file.
+When the user wants to approve a new command pattern (e.g., "approve foo commands", "add docker to safe commands"), or when you see a hint about an unknown command, help manage their patterns.
 
-## Steps
+## Data Files
+
+All data stored in `{plugin}/data/` (where plugin is installed):
+- `patterns.py` - All safe command patterns (edit this)
+- `.seen` - Commands we've encountered but not decided on
+- `.never` - Commands user has declined to auto-approve
+
+## When to Use
+
+1. User explicitly asks to approve a command
+2. You see a permission prompt with "Unknown command 'X' - consider adding to safe patterns"
+3. User declines to add a pattern (add to .never list)
+
+## Adding a Pattern
 
 1. Ask clarifying questions if needed:
    - What command/tool? (e.g., `foo`, `docker`, `myctl`)
@@ -19,23 +32,20 @@ When the user wants to approve a new command pattern (e.g., "approve foo command
    (r"^foo\s+(list|show|get)\b", "foo read"),  # Restricted to read ops
    ```
 
-3. Add to `~/.claude/permissions/custom.py`:
-   - Create file if it doesn't exist
+3. Add to `{plugin}/data/patterns.py`:
    - Append to SAFE_COMMANDS list
-   - Use the template from the plugin's examples/custom_patterns.py
 
-4. Tell user to restart Claude Code for changes to take effect.
+4. Remove from `data/.seen` if present
 
-## Example interaction
+5. Tell user to restart Claude Code for changes to take effect.
 
-User: "approve docker commands"
+## Declining a Pattern
 
-Response: Create/update ~/.claude/permissions/custom.py with:
-```python
-SAFE_COMMANDS = [
-    (r"^docker\b", "docker"),
-]
-```
+If user says "no, don't auto-approve X" or "X should always ask":
+
+1. Add command to `{plugin}/data/.never` (one command per line)
+2. Remove from `data/.seen` if present
+3. Future uses of that command will go straight to permission prompt without hints
 
 ## Pattern file template
 
@@ -48,3 +58,20 @@ SAFE_COMMANDS = [
     # Add patterns here
 ]
 ```
+
+## Example: Adding
+
+User: "approve docker commands"
+
+Response: Add to {plugin}/data/patterns.py:
+```python
+SAFE_COMMANDS = [
+    (r"^docker\b", "docker"),
+]
+```
+
+## Example: Declining
+
+User: "no, git commit should always ask"
+
+Response: Add "git" to {plugin}/data/.never

@@ -7,7 +7,7 @@
   "description": "Claude Code plugins by Matt Rocklin",
   "plugins": [
     {
-      "name": "claude-permissions",
+      "name": "claude-bash-permissions",
       "source": "./",
       "description": "Compositional bash command approval using regex patterns",
       "version": "0.1.0"

@@ -1,16 +1,21 @@
 """
-Pattern loading and merging.
+Pattern loading.
 
 Loads patterns from:
-1. base.py (this plugin's defaults)
-2. ~/.claude/permissions/*.py (user customizations)
-3. .claude/permissions/*.py (project-specific, uses CLAUDE_PROJECT_DIR)
+1. {plugin}/data/*.py (user patterns, editable)
+2. .claude/permissions/*.py (project-specific, uses CLAUDE_PROJECT_DIR)
 """
 import importlib.util
 import os
 from pathlib import Path
 
-from .base import WRAPPER_PATTERNS, SAFE_COMMANDS
+
+def get_data_dir() -> Path:
+    """Get plugin data directory."""
+    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if plugin_root:
+        return Path(plugin_root) / "data"
+    return Path(__file__).parent.parent / "data"
 
 
 def load_patterns_from_file(path: Path) -> tuple[list, list]:
@@ -30,20 +35,19 @@ def load_patterns_from_file(path: Path) -> tuple[list, list]:
 
 
 def load_all_patterns() -> tuple[list, list]:
-    """Merge patterns from base + user + project."""
-    wrappers = list(WRAPPER_PATTERNS)
-    commands = list(SAFE_COMMANDS)
+    """Load patterns from data dir + project dir."""
+    wrappers = []
+    commands = []
 
-    # User patterns: ~/.claude/permissions/*.py
-    user_dir = Path.home() / ".claude" / "permissions"
-    if user_dir.exists():
-        for f in sorted(user_dir.glob("*.py")):
+    # User patterns: {plugin}/data/*.py
+    data_dir = get_data_dir()
+    if data_dir.exists():
+        for f in sorted(data_dir.glob("*.py")):
             w, c = load_patterns_from_file(f)
             wrappers.extend(w)
             commands.extend(c)
 
     # Project patterns: .claude/permissions/*.py
-    # Use CLAUDE_PROJECT_DIR env var if available (set by Claude Code)
     project_root = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     project_dir = Path(project_root) / ".claude" / "permissions"
     if project_dir.exists():

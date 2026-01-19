@@ -1,4 +1,4 @@
-# claude-permissions
+# claude-bash-permissions
 
 Compositional Bash command approval for Claude Code. Approves safe command variations without constant permission prompts.
 
@@ -26,18 +26,18 @@ Chained commands (`&&`, `|`, etc.) are split and each segment validated.
 
 **Option 1: From this repo as marketplace**
 ```bash
-/plugin marketplace add mrocklin/claude-permissions
-/plugin install claude-permissions@mrocklin-plugins
+/plugin marketplace add mrocklin/claude-bash-permissions
+/plugin install claude-bash-permissions@mrocklin-plugins
 ```
 
 **Option 2: Manual install**
 ```bash
-git clone https://github.com/mrocklin/claude-permissions ~/.claude/plugins/claude-permissions
+git clone https://github.com/mrocklin/claude-bash-permissions ~/.claude/plugins/claude-bash-permissions
 ```
 Then add to `~/.claude/settings.json`:
 ```json
 {
-  "plugins": ["~/.claude/plugins/claude-permissions"]
+  "plugins": ["~/.claude/plugins/claude-bash-permissions"]
 }
 ```
 
@@ -47,33 +47,18 @@ Restart Claude Code. Verify with `/hooks`.
 
 **Easy way:** Just ask Claude - "approve docker commands" or "add myctl to safe commands". The plugin includes a skill that helps Claude add patterns for you.
 
-**Manual way:** Add patterns to these locations:
+**Manual way:** Edit `{plugin}/data/patterns.py` - all patterns are in one editable file.
 
-| Location | Scope |
-|----------|-------|
-| `~/.claude/permissions/*.py` | Your global additions |
-| `.claude/permissions/*.py` | Project-specific |
-
-Example `~/.claude/permissions/custom.py`:
-```python
-WRAPPER_PATTERNS = [
-    (r"^sudo\s+", "sudo"),  # If you trust sudo
-]
-
-SAFE_COMMANDS = [
-    (r"^docker\s+(ps|images|logs)\b", "docker read"),
-    (r"^kubectl\s+get\b", "kubectl get"),
-    (r"^my-cli\b", "my-cli"),
-]
-```
+Or add project-specific patterns in `.claude/permissions/*.py`.
 
 Restart Claude Code after changes.
 
-## Test a command
+## Data Storage
 
-```bash
-echo '{"tool_name": "Bash", "tool_input": {"command": "YOUR_CMD"}}' | python3 hooks/approve_bash.py
-```
+All plugin data is stored in `{plugin}/data/`:
+- `patterns.py` - All safe command patterns (editable)
+- `.seen` - Commands encountered (for suggestions)
+- `.never` - Commands declined for auto-approval
 
 ## Security
 

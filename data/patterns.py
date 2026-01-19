@@ -1,8 +1,10 @@
 """
-Base patterns for compositional command approval.
+Safe command patterns for compositional approval.
 
-WRAPPER_PATTERNS: Prefixes that modify HOW a command runs (stripped before checking)
-SAFE_COMMANDS: The actual executables considered safe
+Edit this file to customize which commands are auto-approved.
+
+WRAPPER_PATTERNS: Prefixes stripped before checking (timeout, env vars, etc.)
+SAFE_COMMANDS: Commands considered safe after wrappers are stripped
 """
 
 # =============================================================================
@@ -50,6 +52,7 @@ SAFE_COMMANDS = [
     (r"^python[23]?\b", "python"),
     (r"^pytest\b", "pytest"),
     (r"^ruff\b", "ruff"),
+    (r"^pip\s+(search|show|list|freeze|check)\b", "pip read"),
     (r"^uv\s+(pip|run|sync|venv|add|remove|lock)\b", "uv"),
     (r"^uvx\b", "uvx"),
 
