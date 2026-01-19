@@ -10,7 +10,9 @@ For full context on how the plugin works, read the `CLAUDE.md` and `hooks/approv
 
 ## Data Files
 
-The plugin data directory path is provided in the `additionalContext` from the hook (look for "Plugin data directory: /path/to/data").
+The data directory is `../../data/` relative to this skill file's directory. Use the "Base directory for this skill" shown above to construct the full path.
+
+**Important:** Edit the file in the `cache` directory, NOT the `marketplaces` directory.
 
 Files in that directory:
 - `patterns.py` - All safe command patterns (edit this)
