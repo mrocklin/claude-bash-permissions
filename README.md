@@ -2,6 +2,15 @@
 
 Compositional Bash command approval for Claude Code. Approves safe command variations without constant permission prompts.
 
+## Install
+
+```
+/plugin marketplace add mrocklin/claude-bash-permissions
+/plugin install claude-bash-permissions@mrocklin
+```
+
+Restart Claude Code. Verify with `/hooks`.
+
 ## The Problem
 
 Claude Code's static permissions use prefix matching:
@@ -21,27 +30,6 @@ timeout 60 RUST_BACKTRACE=1 cargo test
 ```
 
 Chained commands (`&&`, `|`, etc.) are split and each segment validated.
-
-## Install
-
-**Option 1: From this repo as marketplace**
-```bash
-/plugin marketplace add mrocklin/claude-bash-permissions
-/plugin install claude-bash-permissions@mrocklin-plugins
-```
-
-**Option 2: Manual install**
-```bash
-git clone https://github.com/mrocklin/claude-bash-permissions ~/.claude/plugins/claude-bash-permissions
-```
-Then add to `~/.claude/settings.json`:
-```json
-{
-  "plugins": ["~/.claude/plugins/claude-bash-permissions"]
-}
-```
-
-Restart Claude Code. Verify with `/hooks`.
 
 ## Customization
 
