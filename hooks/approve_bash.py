@@ -29,9 +29,8 @@ def approve(reason: str) -> None:
     sys.exit(0)
 
 
-def ask_with_hint(core_cmd: str, is_new: bool) -> None:
+def ask_with_hint(cmd_key: str, is_new: bool) -> None:
     """Output 'ask' decision with context to prompt Claude about adding pattern."""
-    cmd_key = core_cmd.split()[0] if core_cmd.split() else ""
     hint = f"Unknown command '{cmd_key}'"
 
     hook_output: dict[str, Any] = {
@@ -56,9 +55,23 @@ def ask_with_hint(core_cmd: str, is_new: bool) -> None:
     sys.exit(0)
 
 
+# Commands that have subcommands - track "cmd subcommand" not just "cmd"
+SUBCOMMAND_TOOLS = {"git", "docker", "kubectl", "npm", "yarn", "cargo", "go", "pip", "uv", "brew", "apt", "systemctl"}
+
 def get_command_key(core_cmd: str) -> str:
-    """Extract the base command for tracking (first word)."""
-    return core_cmd.split()[0] if core_cmd.split() else ""
+    """Extract the command key for tracking.
+
+    For tools with subcommands (git, docker, etc.), returns "cmd subcommand".
+    For other commands, returns just the command name.
+    """
+    parts = core_cmd.split()
+    if not parts:
+        return ""
+    cmd = parts[0]
+    # For subcommand tools, include the subcommand if present
+    if cmd in SUBCOMMAND_TOOLS and len(parts) > 1 and not parts[1].startswith("-"):
+        return f"{cmd} {parts[1]}"
+    return cmd
 
 
 def get_data_dir() -> Path:
@@ -208,7 +221,7 @@ def main():
                 save_seen_command(cmd_key)
 
             # Ask user with hint about adding pattern
-            ask_with_hint(core_cmd, is_new)
+            ask_with_hint(cmd_key, is_new)
 
         if wrappers:
             reasons.append(f"{'+'.join(wrappers)} + {reason}")
