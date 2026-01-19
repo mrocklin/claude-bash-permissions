@@ -6,6 +6,8 @@ description: Add or decline safe command patterns for claude-permissions
 
 When the user wants to approve a new command pattern (e.g., "approve foo commands", "add docker to safe commands"), or when you see a hint about an unknown command, help manage their patterns.
 
+For full context on how the plugin works, read the `CLAUDE.md` file in the plugin's root directory (sibling to the data directory).
+
 ## Data Files
 
 The plugin data directory path is provided in the `additionalContext` from the hook (look for "Plugin data directory: /path/to/data").

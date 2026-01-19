@@ -111,6 +111,9 @@ def split_command_chain(cmd: str):
     cmd = re.sub(r"(\d*)>&(\d*)", r"__REDIR_\1_\2__", cmd)
     cmd = re.sub(r"&>", "__REDIR_AMPGT__", cmd)
 
+    # Protect escaped semicolons (find -exec \;)
+    cmd = cmd.replace(r"\;", "__ESCAPED_SEMI__")
+
     # Split on command separators
     if quoted_strings:
         segments = re.split(r"\s*(?:&&|\|\||;|\||&)\s*", cmd)
@@ -121,6 +124,7 @@ def split_command_chain(cmd: str):
     def restore(s):
         s = re.sub(r"__REDIR_(\d*)_(\d*)__", r"\1>&\2", s)
         s = s.replace("__REDIR_AMPGT__", "&>")
+        s = s.replace("__ESCAPED_SEMI__", r"\;")
         for i, qs in enumerate(quoted_strings):
             s = s.replace(f"__QUOTED_{i}__", qs)
         return s
