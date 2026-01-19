@@ -10,10 +10,12 @@ Patterns are loaded from:
 
 See patterns/base.py for the pattern format.
 """
+from __future__ import annotations
 import json
 import sys
 import re
 from pathlib import Path
+from typing import Optional, List, Tuple
 
 # Add parent to path so we can import patterns
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -32,7 +34,7 @@ def approve(reason: str) -> None:
     sys.exit(0)
 
 
-def split_command_chain(cmd: str) -> list[str]:
+def split_command_chain(cmd: str) -> List[str]:
     """Split command into segments on &&, ||, ;, |, &.
 
     Handles backslash continuations, quoted strings, and redirections.
@@ -69,7 +71,7 @@ def split_command_chain(cmd: str) -> list[str]:
     return [restore(s).strip() for s in segments if s.strip()]
 
 
-def strip_wrappers(cmd: str, wrapper_patterns: list) -> tuple[str, list[str]]:
+def strip_wrappers(cmd: str, wrapper_patterns: list) -> Tuple[str, List[str]]:
     """Strip wrapper prefixes iteratively, return (core_cmd, wrapper_names)."""
     wrappers = []
     changed = True
@@ -85,7 +87,7 @@ def strip_wrappers(cmd: str, wrapper_patterns: list) -> tuple[str, list[str]]:
     return cmd.strip(), wrappers
 
 
-def check_safe(cmd: str, safe_commands: list) -> str | None:
+def check_safe(cmd: str, safe_commands: list) -> Optional[str]:
     """Check if command matches a safe pattern. Returns reason or None."""
     for pattern, reason in safe_commands:
         if re.match(pattern, cmd):
@@ -94,6 +96,9 @@ def check_safe(cmd: str, safe_commands: list) -> str | None:
 
 
 def main():
+    import os
+    debug = os.environ.get("DEBUG")
+
     try:
         data = json.load(sys.stdin)
     except Exception:
@@ -106,6 +111,8 @@ def main():
 
     # Reject command substitution
     if re.search(r"\$\(|`", cmd):
+        if debug:
+            print(f"REJECTED: command substitution ($() or `) detected", file=sys.stderr)
         sys.exit(0)
 
     # Load patterns
@@ -120,7 +127,12 @@ def main():
         reason = check_safe(core_cmd, safe_commands)
 
         if not reason:
-            sys.exit(0)  # Reject
+            if debug:
+                if wrappers:
+                    print(f"REJECTED: '{segment}' -> core '{core_cmd}' (after stripping {wrappers}) - no matching pattern", file=sys.stderr)
+                else:
+                    print(f"REJECTED: '{segment}' - no matching pattern", file=sys.stderr)
+            sys.exit(0)
 
         if wrappers:
             reasons.append(f"{'+'.join(wrappers)} + {reason}")

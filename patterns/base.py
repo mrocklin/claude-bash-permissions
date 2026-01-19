@@ -66,7 +66,7 @@ SAFE_COMMANDS = [
     (r"^make\b", "make"),
 
     # --- Unix Utilities (read-only / pipeline) ---
-    (r"^(ls|cat|head|tail|wc|find|grep|rg|file|which|pwd|du|df|curl|sort|uniq|cut|tr|awk|sed|xargs|tee|open|strings)\b",
+    (r"^(ls|cat|head|tail|wc|find|grep|rg|file|which|pwd|du|df|curl|sort|uniq|cut|tr|awk|sed|xargs|tee|open|strings|bat)\b",
      "read-only"),
 
     # --- File/Directory (low-risk) ---
