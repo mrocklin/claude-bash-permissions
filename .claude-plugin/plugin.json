@@ -2,6 +2,8 @@
   "name": "claude-bash-permissions",
   "version": "0.1.0",
   "description": "Compositional bash command approval using regex patterns",
-  "author": "Matt Rocklin",
+  "author": {
+    "name": "Matt Rocklin"
+  },
   "repository": "https://github.com/mrocklin/claude-bash-permissions"
 }
